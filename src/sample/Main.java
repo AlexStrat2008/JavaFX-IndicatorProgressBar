@@ -1,12 +1,20 @@
 package sample;
 
 import javafx.application.Application;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.ProgressBarTableCell;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -25,41 +33,60 @@ public class Main extends Application {
     }
 
     private VBox createResettableProgressIndicatorBar() {
-        final int TOTAL_WORK = 1500;
 
-        final ReadOnlyIntegerWrapper workDone = new ReadOnlyIntegerWrapper();
+        TableView table = new TableView();
+        TableColumn<Model, String> statusColumn = new TableColumn<>("Status");
+        statusColumn.setCellValueFactory(new PropertyValueFactory<Model, String>("status"));
+        TableColumn<TestTask, Double> progressColumn = new TableColumn<>("Progress");
+        progressColumn.setCellValueFactory(new PropertyValueFactory<TestTask, Double>("progress"));
+        progressColumn.setCellFactory(ProgressBarTableCell.<TestTask> forTableColumn());
+        table.getColumns().addAll(statusColumn, progressColumn);
 
-        final ProgressIndicatorBar bar = new ProgressIndicatorBar(
-                workDone.getReadOnlyProperty(),
-                TOTAL_WORK
-        );
+        ObservableList<Model> tasks = FXCollections.observableArrayList();
 
-        workDone.set(0);
+        Model model = new Model("done..", 0, 16);
+        tasks.addAll(model);
+        table.getItems().addAll(tasks);
 
-        new Thread(() -> {
-            while(workDone.get() != TOTAL_WORK){
-                workDone.set(workDone.get() + 1);
-                try {
-                    Thread.sleep(60);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
+        DoubleProperty progress = tasks.get(0).progressProperty();
 
-        final Button resetButton = new Button("Reset");
+        progress.set(1);
 
         final VBox layout = new VBox(20);
         layout.setAlignment(Pos.CENTER);
         layout.setStyle("-fx-background-color: cornsilk; -fx-padding: 20px;");
-        layout.getChildren().addAll(bar, resetButton);
+        layout.getChildren().addAll(table);
 
         return layout;
+    }
+
+    static class TestTask extends Task<Void> {
+
+        DoubleProperty progress;
+        public static final int NUM_ITERATIONS = 100;
+
+        TestTask(DoubleProperty progress) {
+            this.progress = progress;
+        }
+
+        @Override
+        protected Void call() throws Exception {
+            while(progress.get() != 16){
+                progress.set(progress.get() + 1);
+                try {
+                    Thread.sleep(6000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            return null;
+        }
+
     }
 }
 
 class ProgressIndicatorBar extends StackPane {
-    final private ReadOnlyIntegerProperty workDone;
+    final private DoubleProperty workDone;
     final private double totalWork;
 
     final private ProgressBar bar = new ProgressBar();
@@ -67,7 +94,7 @@ class ProgressIndicatorBar extends StackPane {
 
     final private static int DEFAULT_LABEL_PADDING = 5;
 
-    ProgressIndicatorBar(final ReadOnlyIntegerProperty workDone, final double totalWork) {
+    ProgressIndicatorBar(DoubleProperty workDone, double totalWork) {
         this.workDone = workDone;
         this.totalWork = totalWork;
 
