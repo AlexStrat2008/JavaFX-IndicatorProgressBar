@@ -2,14 +2,10 @@ package sample;
 
 import javafx.application.Application;
 import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.ReadOnlyIntegerProperty;
-import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -34,23 +30,40 @@ public class Main extends Application {
 
     private VBox createResettableProgressIndicatorBar() {
 
-        TableView table = new TableView();
+        TableView<Model> table = new TableView();
         TableColumn<Model, String> statusColumn = new TableColumn<>("Status");
-        statusColumn.setCellValueFactory(new PropertyValueFactory<Model, String>("status"));
-        TableColumn<TestTask, Double> progressColumn = new TableColumn<>("Progress");
-        progressColumn.setCellValueFactory(new PropertyValueFactory<TestTask, Double>("progress"));
-        progressColumn.setCellFactory(ProgressBarTableCell.<TestTask> forTableColumn());
+        statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
+        TableColumn<Model, Double> progressColumn = new TableColumn<>("Progress");
+        progressColumn.setCellValueFactory(new PropertyValueFactory<>("progress"));
+        progressColumn.setCellFactory(ProgressBarTableCell.forTableColumn());
         table.getColumns().addAll(statusColumn, progressColumn);
 
-        ObservableList<Model> tasks = FXCollections.observableArrayList();
+        Model model = new Model("Before", 0.0);
+        ObservableList<Model> models = FXCollections.observableArrayList();
+        models.setAll(
+                new Model("Before", 0.0),
+                new Model("Before", 0.0),
+                new Model("Before", 0.0)
+        );
+        table.getItems().setAll(models);
 
-        Model model = new Model("done..", 0, 16);
-        tasks.addAll(model);
-        table.getItems().addAll(tasks);
-
-        DoubleProperty progress = tasks.get(0).progressProperty();
-
-        progress.set(1);
+        Thread thread = new Thread(() -> {
+            double max = 160.0;
+            for(int i = 0; i < models.size(); i++){
+                models.get(i).setStatus("Progress..");
+                for(int j = 0; j <= 160; j++){
+                    try {
+                        Thread.sleep(60);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    models.get(i).setProgress(j/max);
+                }
+                models.get(i).setStatus("Done..");
+            }
+        });
+        thread.setName("update Table");
+        thread.start();
 
         final VBox layout = new VBox(20);
         layout.setAlignment(Pos.CENTER);
@@ -60,29 +73,28 @@ public class Main extends Application {
         return layout;
     }
 
-    static class TestTask extends Task<Void> {
-
-        DoubleProperty progress;
-        public static final int NUM_ITERATIONS = 100;
-
-        TestTask(DoubleProperty progress) {
-            this.progress = progress;
-        }
-
-        @Override
-        protected Void call() throws Exception {
-            while(progress.get() != 16){
-                progress.set(progress.get() + 1);
-                try {
-                    Thread.sleep(6000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            return null;
-        }
-
-    }
+//    static class TestTask extends Task<Void> {
+//
+//        DoubleProperty progress;
+//        public static final int NUM_ITERATIONS = 100;
+//
+//        TestTask(DoubleProperty progress) {
+//            this.progress = progress;
+//        }
+//
+//        @Override
+//        protected Void call() throws Exception {
+//            while(progress.get() != 16){
+//                progress.set(progress.get() + 1);
+//                try {
+//                    Thread.sleep(6000);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//            return null;
+//        }
+//    }
 }
 
 class ProgressIndicatorBar extends StackPane {

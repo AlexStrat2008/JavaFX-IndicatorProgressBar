@@ -6,18 +6,18 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 public class Model {
+
     private StringProperty status;
     private DoubleProperty progress;
-    private ProgressIndicatorBar bar;
 
-    public Model(String status, double progress, double totalProgress) {
-        this.status = new SimpleStringProperty(status);
-        this.progress = new SimpleDoubleProperty(progress);
-        this.bar = new ProgressIndicatorBar(this.progress, totalProgress);
+    public Model() {
+        status = new SimpleStringProperty();
+        progress = new SimpleDoubleProperty();
     }
 
-    public String getStatus() {
-        return status.get();
+    public Model(String status, double surname) {
+        this.status = new SimpleStringProperty(status);
+        this.progress = new SimpleDoubleProperty(surname);
     }
 
     public void setStatus(String status) {
@@ -28,11 +28,19 @@ public class Model {
         return progress.get();
     }
 
-    public DoubleProperty progressProperty() {
-        return progress;
+    public void setProgress(double surname) {
+        this.progress.set(surname);
     }
 
-    public void setProgress(double progress) {
-        this.progress.set(progress);
+    public String getStatus() {
+        return status.get();
+    }
+
+    public StringProperty statusProperty() {
+        return status;
+    }
+
+    public DoubleProperty progressProperty() {
+        return progress;
     }
 }
