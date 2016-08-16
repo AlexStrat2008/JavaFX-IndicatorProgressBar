@@ -1,35 +1,16 @@
 package sample;
 
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 public class Model {
 
     private StringProperty status;
-    private DoubleProperty progress;
+    private StringProperty progress;
 
-    public Model() {
-        status = new SimpleStringProperty();
-        progress = new SimpleDoubleProperty();
-    }
-
-    public Model(String status, double surname) {
+    public Model(String status, String surname) {
         this.status = new SimpleStringProperty(status);
-        this.progress = new SimpleDoubleProperty(surname);
-    }
-
-    public void setStatus(String status) {
-        this.status.set(status);
-    }
-
-    public double getProgress() {
-        return progress.get();
-    }
-
-    public void setProgress(double surname) {
-        this.progress.set(surname);
+        this.progress = new SimpleStringProperty(surname);
     }
 
     public String getStatus() {
@@ -40,7 +21,19 @@ public class Model {
         return status;
     }
 
-    public DoubleProperty progressProperty() {
+    public void setStatus(String status) {
+        this.status.set(status);
+    }
+
+    public String getProgress() {
+        return progress.get();
+    }
+
+    public StringProperty progressProperty() {
         return progress;
+    }
+
+    public void setProgress(String progress) {
+        this.progress.set(progress);
     }
 }
